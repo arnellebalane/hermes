@@ -94,12 +94,15 @@
          **/
 
         const storage = window.localStorage;
+        const prefix = '__hermes:';
 
         window.addEventListener('storage', (e) => {
-            const name = e.key.replace('__hermes:', '');
-            const data = JSON.parse(e.newValue);
-            if (e.oldValue === null) {
-                broadcast(name, data);
+            if (e.key.indexOf(prefix) >= 0) {
+                const name = e.key.replace(prefix, '');
+                const data = JSON.parse(e.newValue);
+                if (e.oldValue === null) {
+                    broadcast(name, data);
+                }
             }
         });
 
@@ -107,7 +110,7 @@
         // so, queue the current message for sending later when the existing
         // key has already been unset
         function send(name, data) {
-            const key = `__hermes:${name}`;
+            const key = prefix + name;
             storage.setItem(key, JSON.stringify(data));
             storage.removeItem(key);
         }
