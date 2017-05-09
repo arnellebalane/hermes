@@ -1,0 +1,11 @@
+{
+  "name": "hermes",
+  "version": "1.0.0",
+  "description": "client-side inter-tab messaging channel",
+  "main": "hermes.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Arnelle Balane <arnellebalane@gmail.com> (https://arnellebalane.com)",
+  "license": "MIT"
+}
