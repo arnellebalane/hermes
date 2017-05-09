@@ -52,47 +52,22 @@
          *  Support table for BroadcastChannel: http://caniuse.com/#feat=broadcastchannel
          **/
 
-        const channels = {};
+        const channel = new BroadcastChannel('hermes');
+        const callbacks = callbacksManager();
 
-        function initialize(name) {
-            channels[name] = {
-                channel: new BroadcastChannel(name),
-                callbacks: []
-            };
-            channels[name].channel.onmessage = (e) => {
-                channels[name].callbacks.forEach((callback) => callback(e.data));
-            };
-        }
-
-        function on(name, callback) {
-            if (!(name in channels)) {
-                initialize(name);
-            }
-            channels[name].callbacks.push(callback);
-        }
-
-        function off(name, callback) {
-            if (name in channels) {
-                if (typeof callback === 'function') {
-                    const index = channels[name].callbacks.indexOf(callback);
-                    channels[name].callbacks.splice(index, 1);
-                }
-                if (typeof callback !== 'function'
-                || channels[name].callbacks.length === 0) {
-                    channels[name].channel.close();
-                    delete channels[name];
-                }
-            }
-        }
+        channel.onmessage = (e) => {
+            callbacks.broadcast(e.data.name, e.data.data);
+        };
 
         function send(name, data) {
-            if (!(name in channels)) {
-                initialize(name);
-            }
-            channels[name].channel.postMessage(data);
+            channel.postMessage({ name, data });
         }
 
-        return { on, off, send };
+        return {
+            on: callbacks.on.bind(callbacks),
+            off: callbacks.off.bind(callbacks),
+            send
+        };
     }
 
     function sharedWorkerApiFactory() {
