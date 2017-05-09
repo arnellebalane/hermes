@@ -6,41 +6,32 @@
     }
 })(this, function() {
 
-    const callbacksManagerFactory = (function() {
-        function on(name, callback) {
-            const callbacks = this.callbacks;
-            if (!(name in callbacks)) {
-                callbacks[name] = [];
-            }
-            callbacks[name].push(callback);
-        }
+    const callbacks = {};
 
-        function off(name, callback) {
-            const callbacks = this.callbacks;
-            if (name in callbacks) {
-                if (typeof callback === 'function') {
-                    const index = callbacks[name].indexOf(callback);
-                    callbacks[name].splice(index, 1);
-                }
-                if (typeof callback !== 'function'
-                || callbacks[name].length === 0) {
-                    delete callbacks[name];
-                }
+    function on(name, callback) {
+        if (!(name in callbacks)) {
+            callbacks[name] = [];
+        }
+        callbacks[name].push(callback);
+    }
+
+    function off(name, callback) {
+        if (name in callbacks) {
+            if (typeof callback === 'function') {
+                const index = callbacks[name].indexOf(callback);
+                callbacks[name].splice(index, 1);
+            }
+            if (typeof callback !== 'function' || callbacks[name].length === 0) {
+                delete callbacks[name];
             }
         }
+    }
 
-        function broadcast(name, data) {
-            const callbacks = this.callbacks;
-            if (name in callbacks) {
-                callbacks[name].forEach((callback) => callback(data));
-            }
+    function broadcast(name, data) {
+        if (name in callbacks) {
+            callbacks[name].forEach((callback) => callback(data));
         }
-
-        return function callbacksManagerFactory() {
-            const callbacks = {};
-            return { callbacks, on, off, broadcast };
-        };
-    })();
+    }
 
     function broadcastChannelApiFactory() {
         /**
@@ -53,21 +44,13 @@
          **/
 
         const channel = new BroadcastChannel('hermes');
-        const callbacks = callbacksManagerFactory();
-
-        channel.onmessage = (e) => {
-            callbacks.broadcast(e.data.name, e.data.data);
-        };
+        channel.onmessage = (e) => broadcast(e.data.name, e.data.data);
 
         function send(name, data) {
             channel.postMessage({ name, data });
         }
 
-        return {
-            on: callbacks.on.bind(callbacks),
-            off: callbacks.off.bind(callbacks),
-            send: send
-        };
+        return { on, off, send };
     }
 
     function sharedWorkerApiFactory() {
@@ -84,22 +67,15 @@
 
         // TODO: calculate worker path based on this file's path
         const worker = new SharedWorker('hermes-worker.js', 'hermes');
-        const callbacks = callbacksManagerFactory();
 
         worker.port.start();
-        worker.port.onmessage = (e) => {
-            callbacks.broadcast(e.data.name, e.data.data);
-        };
+        worker.port.onmessage = (e) => broadcast(e.data.name, e.data.data);
 
         function send(name, data) {
             worker.port.postMessage({ name, data });
         }
 
-        return {
-            on: callbacks.on.bind(callbacks),
-            off: callbacks.off.bind(callbacks),
-            send: send
-        };
+        return { on, off, send };
     }
 
     function localStorageApiFactory() {
@@ -112,14 +88,13 @@
          *  Support table for localStorage: http://caniuse.com/#search=webstorage
          **/
 
-        const callbacks = callbacksManagerFactory();
         const storage = window.localStorage;
 
         window.addEventListener('storage', (e) => {
             const name = e.key.replace('__hermes:', '');
             const data = JSON.parse(e.newValue);
             if (e.oldValue === null) {
-                callbacks.broadcast(name, data);
+                broadcast(name, data);
             }
         });
 
@@ -132,11 +107,7 @@
             storage.removeItem(key);
         }
 
-        return {
-            on: callbacks.on.bind(callbacks),
-            off: callbacks.off.bind(callbacks),
-            send: send
-        };
+        return { on, off, send };
     }
 
     function emptyApiFactory() {
