@@ -108,6 +108,8 @@
          *  the same origin have shared access to it. Whenever something
          *  changes in the localStorage, the window object emits the `storage`
          *  event in the other tabs letting them know about the change.
+         *
+         *  Support table for localStorage: http://caniuse.com/#search=webstorage
          **/
 
         const callbacks = callbacksManagerFactory();
