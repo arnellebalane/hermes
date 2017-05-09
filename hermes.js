@@ -97,12 +97,10 @@
         const prefix = '__hermes:';
 
         window.addEventListener('storage', (e) => {
-            if (e.key.indexOf(prefix) >= 0) {
+            if (e.key.startsWith(prefix) && e.oldValue === null) {
                 const name = e.key.replace(prefix, '');
                 const data = JSON.parse(e.newValue);
-                if (e.oldValue === null) {
-                    broadcast(name, data);
-                }
+                broadcast(name, data);
             }
         });
 
