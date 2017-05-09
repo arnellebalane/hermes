@@ -95,6 +95,7 @@
 
         const storage = window.localStorage;
         const prefix = '__hermes:';
+        const queue = {};
 
         window.addEventListener('storage', (e) => {
             if (e.key.startsWith(prefix) && e.oldValue === null) {
@@ -104,13 +105,35 @@
             }
         });
 
-        // TODO: check first if the key is already set in the storage, and if
-        // so, queue the current message for sending later when the existing
-        // key has already been unset
+        window.addEventListener('storage', (e) => {
+            if (e.key.startsWith(prefix) && e.newValue === null) {
+                const name = e.key.replace(prefix, '');
+                if (name in queue) {
+                    send(name, queue[name].shift());
+                    if (queue[name].length === 0) {
+                        delete queue[name];
+                    }
+                }
+            }
+        });
+
         function send(name, data) {
             const key = prefix + name;
-            storage.setItem(key, JSON.stringify(data));
-            storage.removeItem(key);
+            if (storage.getItem(key) === null) {
+                storage.setItem(key, JSON.stringify(data));
+                storage.removeItem(key);
+            } else {
+                // The queueing system ensures that multiple calls to the send
+                // function using the same name does not override each other's
+                // values and makes sure that the next value is sent only when
+                // the previous one has already been deleted from the storage.
+                // NOTE: This could just be trying to solve a problem that is
+                // very unlikely to occur.
+                if (!(key) in queue) {
+                    queue[key] = [];
+                }
+                queue[key].push(data);
+            }
         }
 
         return { on, off, send };
