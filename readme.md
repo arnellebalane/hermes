@@ -1,6 +1,6 @@
 # Hermes
 
-Client-side messaging channel for sending data from one tab to another (of the same Web application).
+Client-side messaging channel for sending data from one browser tab to another (of the same Web application).
 
 
 ## Usage

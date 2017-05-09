@@ -1,7 +1,7 @@
 {
   "name": "hermes",
   "version": "1.0.0",
-  "description": "client-side inter-tab messaging channel",
+  "description": "client-side messaging channel for sending data from one browser tab to another",
   "main": "hermes.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
