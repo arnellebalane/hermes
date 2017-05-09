@@ -66,7 +66,7 @@
         return {
             on: callbacks.on.bind(callbacks),
             off: callbacks.off.bind(callbacks),
-            send
+            send: send
         };
     }
 
@@ -98,7 +98,7 @@
         return {
             on: callbacks.on.bind(callbacks),
             off: callbacks.off.bind(callbacks),
-            send
+            send: send
         };
     }
 
@@ -133,7 +133,7 @@
         return {
             on: callbacks.on.bind(callbacks),
             off: callbacks.off.bind(callbacks),
-            send
+            send: send
         };
     }
 
