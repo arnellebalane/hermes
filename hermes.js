@@ -6,7 +6,7 @@
     }
 })(this, function() {
 
-    const callbacksManager = (function callbacksManagerFactory() {
+    const callbacksManagerFactory = (function() {
         function on(name, callback) {
             const callbacks = this.callbacks;
             if (!(name in callbacks)) {
@@ -36,7 +36,7 @@
             }
         }
 
-        return function callbacksManager() {
+        return function callbacksManagerFactory() {
             const callbacks = {};
             return { callbacks, on, off, broadcast };
         };
@@ -53,7 +53,7 @@
          **/
 
         const channel = new BroadcastChannel('hermes');
-        const callbacks = callbacksManager();
+        const callbacks = callbacksManagerFactory();
 
         channel.onmessage = (e) => {
             callbacks.broadcast(e.data.name, e.data.data);
@@ -84,7 +84,7 @@
 
         // TODO: calculate worker path based on this file's path
         const worker = new SharedWorker('hermes-worker.js', 'hermes');
-        const callbacks = callbacksManager();
+        const callbacks = callbacksManagerFactory();
 
         worker.port.start();
         worker.port.onmessage = (e) => {
@@ -110,7 +110,7 @@
          *  event in the other tabs letting them know about the change.
          **/
 
-        const callbacks = callbacksManager();
+        const callbacks = callbacksManagerFactory();
         const storage = window.localStorage;
 
         window.onstorage = (e) => {
