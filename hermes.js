@@ -12,6 +12,8 @@
         return sharedWorkerApiFactory();
     } else if ('localStorage' in window) {
         return localStorageApiFactory();
+    } else {
+        return emptyApiFactory();
     }
 
     function broadcastChannelApiFactory() {
@@ -167,6 +169,20 @@
         }
 
         return { on, off, send };
+    }
+
+    function emptyApiFactory() {
+        /**
+         *  When the browser does not support any of the APIs that we're using
+         *  for messaging, just present an empty api that does just gives
+         *  warnings regarding the lack of support.
+         **/
+
+        function noop() {
+            console.warn('Hermes messaging is not supported.');
+        }
+
+        return { on: noop, off: noop, send: noop };
     }
 
 });
