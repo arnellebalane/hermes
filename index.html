@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Hermes Demo</title>
+    </head>
+
+    <body>
+        <h1>Hermes Demo</h1>
+        <h2>Open this page in multiple tabs.</h2>
+        <h2>Clicking anywhere on this page will send a message to all the other opened tabs.</h2>
+
+        <ul></ul>
+
+        <script src="hermes.js"></script>
+        <script>
+            document.addEventListener('click', function() {
+                hermes.send('event', new Date());
+            });
+
+            const ul = document.querySelector('ul');
+
+            hermes.on('event', function(data) {
+                const li = document.createElement('li');
+                li.textContent = data;
+                ul.appendChild(li);
+            });
+        </script>
+    </body>
+</html>
