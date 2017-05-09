@@ -45,7 +45,6 @@ Hermes exposes an object named `hermes` which contains the API methods.
 
   ```js
   hermes.off('some-topic', callbackFunction);
-  // or
   hermes.off('some-topic');
   ```
 
