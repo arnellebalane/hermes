@@ -51,4 +51,57 @@ if ('BroadcastChannel' in window) {
 
         return { on, off, send };
     })();
+
+} else if ('SharedWorker' in window) {
+    /**
+     *  A SharedWorker is a script that is run by the browser in the background.
+     *  Different browsing contexts (including tabs) from the same origin have
+     *  shared accesss to the SharedWorker instance and can communicate with
+     *  it. We are taking advantage of these features to use it as a messaging
+     *  channel which simply forwards messages it receives to the other
+     *  connected tabs.
+     *
+     *  Support table for SharedWorker: http://caniuse.com/#feat=sharedworkers
+     **/
+
+    window.hermes = (function sharedWorkerApiFactory() {
+        // TODO: calculate worker path based on this file's path
+        const worker = new SharedWorker('hermes-worker.js', 'hermes');
+        worker.port.start();
+
+        const callbacks = {};
+        worker.port.onmessage = (e) => {
+            const data = e.data;
+            if (data.name in callbacks) {
+                callbacks[data.name].forEach((callback) => callback(data.data));
+            }
+        };
+
+        function on(name, callback) {
+            if (!(name in callbacks)) {
+                callbacks[name] = [];
+            }
+            callbacks[name].push(callback);
+        }
+
+        function off(name, callback) {
+            if (name in callbacks) {
+                if (typeof callback === 'function') {
+                    const index = callbacks[name].indexOf(callback);
+                    callbacks[name].splice(index, 1);
+                }
+                if (typeof callback !== 'function'
+                || callbacks[name].length === 0) {
+                    delete callbacks[name];
+                }
+            }
+        }
+
+        function send(name, data) {
+            worker.port.postMessage({ name, data });
+        }
+
+        return { on, off, send };
+    })();
+
 }
