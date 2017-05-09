@@ -1,14 +1,29 @@
-if ('BroadcastChannel' in window) {
-    /**
-     *  The BroadcastChannel API allows simple communication between browsing
-     *  contexts (including tabs), sort of like a PubSub that works across
-     *  different tabs. This is the ideal solution for messaging between
-     *  different tabs, but it is relatively new.
-     *
-     *  Support table for BroadcastChannel: http://caniuse.com/#feat=broadcastchannel
-     **/
+(function(global, factory) {
+    if (typeof define === 'function' && define.amd) {
+        define([], factory);
+    } else {
+        global.hermes = factory();
+    }
+})(this, function() {
 
-    window.hermes = (function broadcastChannelApiFactory() {
+    if ('BroadcastChannel' in window) {
+        return broadcastChannelApiFactory();
+    } else if ('SharedWorker' in window) {
+        return sharedWorkerApiFactory();
+    } else if ('localStorage' in window) {
+        return localStorageApiFactory();
+    }
+
+    function broadcastChannelApiFactory() {
+        /**
+         *  The BroadcastChannel API allows simple communication between
+         *  browsing contexts (including tabs), sort of like a PubSub that
+         *  works across different tabs. This is the ideal solution for
+         *  messaging between different tabs, but it is relatively new.
+         *
+         *  Support table for BroadcastChannel: http://caniuse.com/#feat=broadcastchannel
+         **/
+
         const channels = {};
 
         function initialize(name) {
@@ -17,7 +32,7 @@ if ('BroadcastChannel' in window) {
                 callbacks: []
             };
             channels[name].channel.onmessage = (e) => {
-                channels[name].callbacks.forEach((callback) => callback(e));
+                channels[name].callbacks.forEach((callback) => callback(e.data));
             };
         }
 
@@ -50,21 +65,20 @@ if ('BroadcastChannel' in window) {
         }
 
         return { on, off, send };
-    })();
+    }
 
-} else if ('SharedWorker' in window) {
-    /**
-     *  A SharedWorker is a script that is run by the browser in the background.
-     *  Different browsing contexts (including tabs) from the same origin have
-     *  shared accesss to the SharedWorker instance and can communicate with
-     *  it. We are taking advantage of these features to use it as a messaging
-     *  channel which simply forwards messages it receives to the other
-     *  connected tabs.
-     *
-     *  Support table for SharedWorker: http://caniuse.com/#feat=sharedworkers
-     **/
+    function sharedWorkerApiFactory() {
+        /**
+         *  A SharedWorker is a script that is run by the browser in the
+         *  background. Different browsing contexts (including tabs) from the
+         *  same origin have shared accesss to the SharedWorker instance and
+         *  can communicate with it. We are taking advantage of these features
+         *  to use it as a messaging channel which simply forwards messages it
+         *  receives to the other connected tabs.
+         *
+         *  Support table for SharedWorker: http://caniuse.com/#feat=sharedworkers
+         **/
 
-    window.hermes = (function sharedWorkerApiFactory() {
         // TODO: calculate worker path based on this file's path
         const worker = new SharedWorker('hermes-worker.js', 'hermes');
         worker.port.start();
@@ -102,17 +116,16 @@ if ('BroadcastChannel' in window) {
         }
 
         return { on, off, send };
-    })();
+    }
 
-} else if ('localStorage' in window) {
-    /**
-     *  The localStorage is a key-value pair storage, and browser tabs from the
-     *  same origin have shared access to it. Whenever something changes in the
-     *  localStorage, the window object emits the `storage` event in the other
-     *  tabs letting them know about the change.
-     **/
+    function localStorageApiFactory() {
+        /**
+         *  The localStorage is a key-value pair storage, and browser tabs from
+         *  the same origin have shared access to it. Whenever something
+         *  changes in the localStorage, the window object emits the `storage`
+         *  event in the other tabs letting them know about the change.
+         **/
 
-    window.hermes = (function localStorageApiFactory() {
         const callbacks = {};
         const storage = window.localStorage;
 
@@ -154,6 +167,6 @@ if ('BroadcastChannel' in window) {
         }
 
         return { on, off, send };
-    })();
+    }
 
-}
+});
