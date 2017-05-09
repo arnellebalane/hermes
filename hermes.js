@@ -135,36 +135,16 @@
          *  event in the other tabs letting them know about the change.
          **/
 
-        const callbacks = {};
+        const callbacks = callbacksManager();
         const storage = window.localStorage;
 
         window.onstorage = (e) => {
             const name = e.key.replace('__hermes:', '');
-            if (name in callbacks && e.oldValue === null) {
-                const data = JSON.parse(e.newValue);
-                callbacks[name].forEach((callback) => callback(data));
+            const data = JSON.parse(e.newValue);
+            if (e.oldValue === null) {
+                callbacks.broadcast(name, data);
             }
         };
-
-        function on(name, callback) {
-            if (!(name in callbacks)) {
-                callbacks[name] = [];
-            }
-            callbacks[name].push(callback);
-        }
-
-        function off(name, callback) {
-            if (name in callbacks) {
-                if (typeof callback === 'function') {
-                    const index = callbacks[name].indexOf(callback);
-                    callbacks[name].splice(index, 1);
-                }
-                if (typeof callback !== 'function'
-                || callbacks[name].length === 0) {
-                    delete callbacks[name];
-                }
-            }
-        }
 
         // TODO: check first if the key is already set in the storage, and if
         // so, queue the current message for sending later when the existing
@@ -175,7 +155,11 @@
             storage.removeItem(key);
         }
 
-        return { on, off, send };
+        return {
+            on: callbacks.on.bind(callbacks),
+            off: callbacks.off.bind(callbacks),
+            send
+        };
     }
 
     function emptyApiFactory() {
