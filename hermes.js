@@ -6,15 +6,41 @@
     }
 })(this, function() {
 
-    if ('BroadcastChannel' in window) {
-        return broadcastChannelApiFactory();
-    } else if ('SharedWorker' in window) {
-        return sharedWorkerApiFactory();
-    } else if ('localStorage' in window) {
-        return localStorageApiFactory();
-    } else {
-        return emptyApiFactory();
-    }
+    const callbacksManager = (function callbacksManagerFactory() {
+        function on(name, callback) {
+            const callbacks = this.callbacks;
+            if (!(name in callbacks)) {
+                callbacks[name] = [];
+            }
+            callbacks[name].push(callback);
+        }
+
+        function off(name, callback) {
+            const callbacks = this.callbacks;
+            if (name in callbacks) {
+                if (typeof callback === 'function') {
+                    const index = callbacks[name].indexOf(callback);
+                    callbacks[name].splice(index, 1);
+                }
+                if (typeof callback !== 'function'
+                || callbacks[name].length === 0) {
+                    delete callbacks[name];
+                }
+            }
+        }
+
+        function broadcast(name, data) {
+            const callbacks = this.callbacks;
+            if (name in callbacks) {
+                callbacks[name].forEach((callback) => callback(data));
+            }
+        }
+
+        return function callbacksManager() {
+            const callbacks = {};
+            return { callbacks, on, off, broadcast };
+        };
+    })();
 
     function broadcastChannelApiFactory() {
         /**
@@ -83,41 +109,22 @@
 
         // TODO: calculate worker path based on this file's path
         const worker = new SharedWorker('hermes-worker.js', 'hermes');
+        const callbacks = callbacksManager();
+
         worker.port.start();
-
-        const callbacks = {};
         worker.port.onmessage = (e) => {
-            const data = e.data;
-            if (data.name in callbacks) {
-                callbacks[data.name].forEach((callback) => callback(data.data));
-            }
+            callbacks.broadcast(e.data.name, e.data.data);
         };
-
-        function on(name, callback) {
-            if (!(name in callbacks)) {
-                callbacks[name] = [];
-            }
-            callbacks[name].push(callback);
-        }
-
-        function off(name, callback) {
-            if (name in callbacks) {
-                if (typeof callback === 'function') {
-                    const index = callbacks[name].indexOf(callback);
-                    callbacks[name].splice(index, 1);
-                }
-                if (typeof callback !== 'function'
-                || callbacks[name].length === 0) {
-                    delete callbacks[name];
-                }
-            }
-        }
 
         function send(name, data) {
             worker.port.postMessage({ name, data });
         }
 
-        return { on, off, send };
+        return {
+            on: callbacks.on.bind(callbacks),
+            off: callbacks.off.bind(callbacks),
+            send
+        };
     }
 
     function localStorageApiFactory() {
@@ -183,6 +190,16 @@
         }
 
         return { on: noop, off: noop, send: noop };
+    }
+
+    if ('BroadcastChannel' in window) {
+        return broadcastChannelApiFactory();
+    } else if ('SharedWorker' in window) {
+        return sharedWorkerApiFactory();
+    } else if ('localStorage' in window) {
+        return localStorageApiFactory();
+    } else {
+        return emptyApiFactory();
     }
 
 });
