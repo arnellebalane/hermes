@@ -65,8 +65,13 @@
          *  Support table for SharedWorker: http://caniuse.com/#feat=sharedworkers
          **/
 
-        // TODO: calculate worker path based on this file's path
-        const worker = new SharedWorker('hermes-worker.js', 'hermes');
+        const selector = '[src$="hermes.js"],[src$="hermes.min.js"]';
+        const script = document.querySelector(selector);
+        const scriptUrl = new URL(script.src);
+        const workerPath = scriptUrl.pathname
+            .replace('hermes.js', 'hermes-worker.js');
+
+        const worker = new SharedWorker(workerPath, 'hermes');
 
         worker.port.start();
         worker.port.onmessage = (e) => broadcast(e.data.name, e.data.data);
