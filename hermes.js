@@ -104,4 +104,56 @@ if ('BroadcastChannel' in window) {
         return { on, off, send };
     })();
 
+} else if ('localStorage' in window) {
+    /**
+     *  The localStorage is a key-value pair storage, and browser tabs from the
+     *  same origin have shared access to it. Whenever something changes in the
+     *  localStorage, the window object emits the `storage` event in the other
+     *  tabs letting them know about the change.
+     **/
+
+    window.hermes = (function localStorageApiFactory() {
+        const callbacks = {};
+        const storage = window.localStorage;
+
+        window.onstorage = (e) => {
+            const name = e.key.replace('__hermes:', '');
+            if (name in callbacks && e.oldValue === null) {
+                const data = JSON.parse(e.newValue);
+                callbacks[name].forEach((callback) => callback(data));
+            }
+        };
+
+        function on(name, callback) {
+            if (!(name in callbacks)) {
+                callbacks[name] = [];
+            }
+            callbacks[name].push(callback);
+        }
+
+        function off(name, callback) {
+            if (name in callbacks) {
+                if (typeof callback === 'function') {
+                    const index = callbacks[name].indexOf(callback);
+                    callbacks[name].splice(index, 1);
+                }
+                if (typeof callback !== 'function'
+                || callbacks[name].length === 0) {
+                    delete callbacks[name];
+                }
+            }
+        }
+
+        // TODO: check first if the key is already set in the storage, and if
+        // so, queue the current message for sending later when the existing
+        // key has already been unset
+        function send(name, data) {
+            const key = `__hermes:${name}`;
+            storage.setItem(key, JSON.stringify(data));
+            storage.removeItem(key);
+        }
+
+        return { on, off, send };
+    })();
+
 }
