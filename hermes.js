@@ -115,13 +115,13 @@
         const callbacks = callbacksManagerFactory();
         const storage = window.localStorage;
 
-        window.onstorage = (e) => {
+        window.addEventListener('storage', (e) => {
             const name = e.key.replace('__hermes:', '');
             const data = JSON.parse(e.newValue);
             if (e.oldValue === null) {
                 callbacks.broadcast(name, data);
             }
-        };
+        });
 
         // TODO: check first if the key is already set in the storage, and if
         // so, queue the current message for sending later when the existing
