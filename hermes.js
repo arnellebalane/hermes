@@ -72,7 +72,7 @@
         const script = document.querySelector(selector);
         const scriptUrl = new URL(script.src);
         const workerPath = scriptUrl.pathname
-            .replace('hermes.js', 'hermes-worker.js');
+            .replace(/hermes(\.min)?\.js/, 'hermes-worker$1.js');
 
         const worker = new SharedWorker(workerPath, 'hermes');
 
