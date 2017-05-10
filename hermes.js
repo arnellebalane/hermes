@@ -46,8 +46,11 @@
         const channel = new BroadcastChannel('hermes');
         channel.onmessage = (e) => broadcast(e.data.name, e.data.data);
 
-        function send(name, data) {
+        function send(name, data, includeSelf=false) {
             channel.postMessage({ name, data });
+            if (includeSelf) {
+                broadcast(name, data);
+            }
         }
 
         return { on, off, send };
@@ -76,8 +79,11 @@
         worker.port.start();
         worker.port.onmessage = (e) => broadcast(e.data.name, e.data.data);
 
-        function send(name, data) {
+        function send(name, data, includeSelf=false) {
             worker.port.postMessage({ name, data });
+            if (includeSelf) {
+                broadcast(name, data);
+            }
         }
 
         return { on, off, send };
@@ -117,11 +123,14 @@
             }
         });
 
-        function send(name, data) {
+        function send(name, data, includeSelf=false) {
             const key = prefix + name;
             if (storage.getItem(key) === null) {
                 storage.setItem(key, JSON.stringify(data));
                 storage.removeItem(key);
+                if (includeSelf) {
+                    broadcast(name, data);
+                }
             } else {
                 // The queueing system ensures that multiple calls to the send
                 // function using the same name does not override each other's
