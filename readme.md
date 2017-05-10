@@ -24,13 +24,15 @@ Hermes exposes an object named `hermes` which contains the API methods.
 
 ## API
 
-- **`send(name, data)`**: Send data to other browser tabs subscribed to a specified topic.
+- **`send(name, data, [includeSelf=false])`**: Send data to other browser tabs subscribed to a specified topic.
   - `name`: The name of the topic in which the data will be sent to.
   - `data`: The data to be sent. This needs to be a JSON-serializable object.
+  - `includeSelf` (optional, default=false): A boolean indicating whether the data should also be sent to the current tab.
 
   ```js
   hermes.send('some-topic', 'hello world');
   hermes.send('some-topic', { title: 'awesome' });
+  hermes.send('some-topic', { title: 'awesome' }, true);
   ```
 
 - **`on(name, callback)`**: Add a callback function for a specified topic.
