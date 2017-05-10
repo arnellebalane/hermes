@@ -8,17 +8,20 @@
     <body>
         <h1>Hermes Demo</h1>
         <h2>Open this page in multiple tabs.</h2>
-        <h2>Clicking anywhere on this page will send a message to all the other opened tabs.</h2>
+
+        <button id="others">Send data to other tabs</button>
+        <button id="all">Send data to all tabs (including self)</button>
 
         <ul></ul>
 
         <script src="hermes.js"></script>
         <script>
-            document.addEventListener('click', function() {
-                hermes.send('event', new Date());
-            });
-
+            const othersBtn = document.querySelector('#others');
+            const allBtn = document.querySelector('#all');
             const ul = document.querySelector('ul');
+
+            othersBtn.onclick = () => hermes.send('event', new Date());
+            allBtn.onclick = () => hermes.send('event', new Date(), true);
 
             hermes.on('event', function(data) {
                 const li = document.createElement('li');
