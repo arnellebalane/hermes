@@ -7,7 +7,7 @@ To see a demo of Hermes in action, open the included `index.html` file in multip
 
 ## Usage
 
-Get a copy of `hermes.js` and include it in your code:
+Get a copy of `hermes.js` or `dist/hermes.min.js` and include it in your code:
 
 ```html
 <script src="/path/to/hermes.js"></script>
