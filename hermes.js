@@ -104,7 +104,7 @@
         const queue = {};
 
         window.addEventListener('storage', (e) => {
-            if (e.key.startsWith(prefix) && e.oldValue === null) {
+            if (e.key.indexOf(prefix) === 0 && e.oldValue === null) {
                 const name = e.key.replace(prefix, '');
                 const data = JSON.parse(e.newValue);
                 broadcast(name, data);
@@ -112,7 +112,7 @@
         });
 
         window.addEventListener('storage', (e) => {
-            if (e.key.startsWith(prefix) && e.newValue === null) {
+            if (e.key.indexOf(prefix) === 0 && e.newValue === null) {
                 const name = e.key.replace(prefix, '');
                 if (name in queue) {
                     send(name, queue[name].shift());
