@@ -1,6 +1,6 @@
 # Hermes
 
-Client-side messaging channel for sending data from one browser tab to another (of the same Web application).
+Client-side messaging channel for sending data from one browser tab to another with the same origin. Think of it as a PubSub module that can send messages across multiple browser tabs.
 
 To see a demo of Hermes in action, open the included `index.html` file in multiple browser tabs.
 
