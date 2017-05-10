@@ -4,7 +4,7 @@
     } else {
         global.hermes = factory();
     }
-})(this, function() {
+})(window, function() {
 
     const callbacks = {};
 
