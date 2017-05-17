@@ -3,14 +3,29 @@
     <head>
         <meta charset="utf-8">
         <title>Hermes Demo</title>
+
+        <style>
+            .ball {
+                width: 100px;
+                height: 100px;
+                border-radius: 50%;
+                background-color: red;
+                position: fixed;
+                top: calc(50% - 50px);
+                left: calc(50% - 50px);
+            }
+        </style>
     </head>
 
     <body>
         <h1>Hermes Demo</h1>
+        <a href="https://github.com/arnellebalane/hermes">https://github.com/arnellebalane/hermes</a>
         <h2>Open this page in multiple tabs.</h2>
 
         <button id="others">Send data to other tabs</button>
         <button id="all">Send data to all tabs (including self)</button>
+
+        <p class="ball"></p>
 
         <ul></ul>
 
@@ -19,6 +34,7 @@
             const othersBtn = document.querySelector('#others');
             const allBtn = document.querySelector('#all');
             const ul = document.querySelector('ul');
+            const ball = document.querySelector('.ball');
 
             othersBtn.onclick = () => hermes.send('event', new Date());
             allBtn.onclick = () => hermes.send('event', new Date(), true);
@@ -27,6 +43,25 @@
                 const li = document.createElement('li');
                 li.textContent = data;
                 ul.appendChild(li);
+            });
+
+            hermes.on('moveball', function(data) {
+                ball.style.top = `calc(${data.y * 100}% - 50px)`;
+                ball.style.left = `calc(${data.x * 100}% - 50px)`;
+            });
+
+            let dragging = false;
+
+            ball.addEventListener('pointerdown', (e) => dragging = true);
+            document.addEventListener('pointerup', (e) => dragging = false);
+            document.addEventListener('pointermove', (e) => {
+                if (dragging) {
+                    const data = {
+                        x: e.pageX / window.innerWidth,
+                        y: e.pageY / window.innerHeight
+                    };
+                    hermes.send('moveball', data, true);
+                }
             });
         </script>
     </body>
