@@ -4,8 +4,7 @@
     } else {
         global.hermes = factory();
     }
-})(window, function() {
-
+})(window, () => {
     const callbacks = {};
 
     function on(name, callback) {
@@ -29,35 +28,35 @@
 
     function broadcast(name, data) {
         if (name in callbacks) {
-            callbacks[name].forEach((callback) => callback(data));
+            callbacks[name].forEach(callback => callback(data));
         }
     }
 
     function broadcastChannelApiFactory() {
-        /**
+        /*
          *  The BroadcastChannel API allows simple communication between
          *  browsing contexts (including tabs), sort of like a PubSub that
          *  works across different tabs. This is the ideal solution for
          *  messaging between different tabs, but it is relatively new.
          *
          *  Support table for BroadcastChannel: http://caniuse.com/#feat=broadcastchannel
-         **/
+         */
 
         const channel = new BroadcastChannel('hermes');
-        channel.onmessage = (e) => broadcast(e.data.name, e.data.data);
+        channel.onmessage = e => broadcast(e.data.name, e.data.data);
 
         function send(name, data, includeSelf=false) {
-            channel.postMessage({ name, data });
+            channel.postMessage({name, data});
             if (includeSelf) {
                 broadcast(name, data);
             }
         }
 
-        return { on, off, send };
+        return {on, off, send};
     }
 
     function sharedWorkerApiFactory() {
-        /**
+        /*
          *  A SharedWorker is a script that is run by the browser in the
          *  background. Different browsing contexts (including tabs) from the
          *  same origin have shared accesss to the SharedWorker instance and
@@ -66,7 +65,7 @@
          *  receives to the other connected tabs.
          *
          *  Support table for SharedWorker: http://caniuse.com/#feat=sharedworkers
-         **/
+         */
 
         const selector = '[src$="hermes.js"],[src$="hermes.min.js"]';
         const script = document.querySelector(selector);
@@ -77,33 +76,57 @@
         const worker = new SharedWorker(workerPath, 'hermes');
 
         worker.port.start();
-        worker.port.onmessage = (e) => broadcast(e.data.name, e.data.data);
+        worker.port.onmessage = e => broadcast(e.data.name, e.data.data);
 
         function send(name, data, includeSelf=false) {
-            worker.port.postMessage({ name, data });
+            worker.port.postMessage({name, data});
             if (includeSelf) {
                 broadcast(name, data);
             }
         }
 
-        return { on, off, send };
+        return {on, off, send};
     }
 
     function localStorageApiFactory() {
-        /**
+        /*
          *  The localStorage is a key-value pair storage, and browser tabs from
          *  the same origin have shared access to it. Whenever something
          *  changes in the localStorage, the window object emits the `storage`
          *  event in the other tabs letting them know about the change.
          *
          *  Support table for localStorage: http://caniuse.com/#search=webstorage
-         **/
+         */
 
         const storage = window.localStorage;
         const prefix = '__hermes:';
         const queue = {};
 
-        window.addEventListener('storage', (e) => {
+        function send(name, data, includeSelf=false) {
+            const key = prefix + name;
+            if (storage.getItem(key) === null) {
+                storage.setItem(key, JSON.stringify(data));
+                storage.removeItem(key);
+                if (includeSelf) {
+                    broadcast(name, data);
+                }
+            } else {
+                /*
+                 * The queueing system ensures that multiple calls to the send
+                 * function using the same name does not override each other's
+                 * values and makes sure that the next value is sent only when
+                 * the previous one has already been deleted from the storage.
+                 * NOTE: This could just be trying to solve a problem that is
+                 * very unlikely to occur.
+                 */
+                if (!((key) in queue)) {
+                    queue[key] = [];
+                }
+                queue[key].push(data);
+            }
+        }
+
+        window.addEventListener('storage', e => {
             if (e.key.indexOf(prefix) === 0 && e.oldValue === null) {
                 const name = e.key.replace(prefix, '');
                 const data = JSON.parse(e.newValue);
@@ -111,7 +134,7 @@
             }
         });
 
-        window.addEventListener('storage', (e) => {
+        window.addEventListener('storage', e => {
             if (e.key.indexOf(prefix) === 0 && e.newValue === null) {
                 const name = e.key.replace(prefix, '');
                 if (name in queue) {
@@ -123,43 +146,21 @@
             }
         });
 
-        function send(name, data, includeSelf=false) {
-            const key = prefix + name;
-            if (storage.getItem(key) === null) {
-                storage.setItem(key, JSON.stringify(data));
-                storage.removeItem(key);
-                if (includeSelf) {
-                    broadcast(name, data);
-                }
-            } else {
-                // The queueing system ensures that multiple calls to the send
-                // function using the same name does not override each other's
-                // values and makes sure that the next value is sent only when
-                // the previous one has already been deleted from the storage.
-                // NOTE: This could just be trying to solve a problem that is
-                // very unlikely to occur.
-                if (!(key) in queue) {
-                    queue[key] = [];
-                }
-                queue[key].push(data);
-            }
-        }
-
-        return { on, off, send };
+        return {on, off, send};
     }
 
     function emptyApiFactory() {
-        /**
+        /*
          *  When the browser does not support any of the APIs that we're using
          *  for messaging, just present an empty api that does just gives
          *  warnings regarding the lack of support.
-         **/
+         */
 
         function noop() {
             console.warn('Hermes messaging is not supported.');
         }
 
-        return { on: noop, off: noop, send: noop };
+        return {on: noop, off: noop, send: noop};
     }
 
     if ('BroadcastChannel' in window) {
@@ -168,8 +169,6 @@
         return sharedWorkerApiFactory();
     } else if ('localStorage' in window) {
         return localStorageApiFactory();
-    } else {
-        return emptyApiFactory();
     }
-
+    return emptyApiFactory();
 });
