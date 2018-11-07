@@ -4,6 +4,7 @@
   "description": "client-side messaging channel for sending data from one browser tab to another",
   "main": "hermes.js",
   "scripts": {
+    "build": "gulp",
     "lint": "eslint *.js"
   },
   "author": "Arnelle Balane <arnellebalane@gmail.com> (https://arnellebalane.com)",
