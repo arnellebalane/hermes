@@ -4,7 +4,8 @@
   "description": "client-side messaging channel for sending data from one browser tab to another",
   "main": "hermes.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "gulp",
+    "lint": "eslint *.js"
   },
   "author": "Arnelle Balane <arnellebalane@gmail.com> (https://arnellebalane.com)",
   "license": "MIT",
@@ -20,5 +21,23 @@
     "presets": [
       "es2015"
     ]
+  },
+  "devDependencies": {
+    "eslint": "5.8.0",
+    "eslint-config-arnellebalane": "1.4.0"
+  },
+  "eslintConfig": {
+    "extends": [
+      "arnellebalane"
+    ],
+    "parserOptions": {
+      "sourceType": "module",
+      "ecmaVersion": 2015
+    },
+    "env": {
+      "browser": true,
+      "worker": true,
+      "amd": true
+    }
   }
 }

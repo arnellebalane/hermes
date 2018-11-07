@@ -1,13 +1,13 @@
 const connections = [];
 
-self.onconnect = function(e) {
-    const port = e.ports[0];
+self.onconnect = function(connectEvent) {
+    const port = connectEvent.ports[0];
     port.start();
 
-    port.onmessage = (e) => {
-        connections.forEach((connection) => {
+    port.onmessage = messageEvent => {
+        connections.forEach(connection => {
             if (connection !== port) {
-                connection.postMessage(e.data)
+                connection.postMessage(messageEvent.data);
             }
         });
     };
