@@ -7,28 +7,28 @@
 })(window, () => {
     const callbacks = {};
 
-    function on(name, callback) {
-        if (!(name in callbacks)) {
-            callbacks[name] = [];
+    function on(topic, callback) {
+        if (!(topic in callbacks)) {
+            callbacks[topic] = [];
         }
-        callbacks[name].push(callback);
+        callbacks[topic].push(callback);
     }
 
-    function off(name, callback) {
-        if (name in callbacks) {
+    function off(topic, callback) {
+        if (topic in callbacks) {
             if (typeof callback === 'function') {
-                const index = callbacks[name].indexOf(callback);
-                callbacks[name].splice(index, 1);
+                const index = callbacks[topic].indexOf(callback);
+                callbacks[topic].splice(index, 1);
             }
-            if (typeof callback !== 'function' || callbacks[name].length === 0) {
-                delete callbacks[name];
+            if (typeof callback !== 'function' || callbacks[topic].length === 0) {
+                delete callbacks[topic];
             }
         }
     }
 
-    function broadcast(name, data) {
-        if (name in callbacks) {
-            callbacks[name].forEach(callback => callback(data));
+    function broadcast(topic, data) {
+        if (topic in callbacks) {
+            callbacks[topic].forEach(callback => callback(data));
         }
     }
 
@@ -43,12 +43,12 @@
          */
 
         const channel = new BroadcastChannel('hermes');
-        channel.onmessage = e => broadcast(e.data.name, e.data.data);
+        channel.onmessage = e => broadcast(e.data.topic, e.data.data);
 
-        function send(name, data, includeSelf=false) {
-            channel.postMessage({name, data});
+        function send(topic, data, includeSelf=false) {
+            channel.postMessage({topic, data});
             if (includeSelf) {
-                broadcast(name, data);
+                broadcast(topic, data);
             }
         }
 
@@ -76,12 +76,12 @@
         const worker = new SharedWorker(workerPath, 'hermes');
 
         worker.port.start();
-        worker.port.onmessage = e => broadcast(e.data.name, e.data.data);
+        worker.port.onmessage = e => broadcast(e.data.topic, e.data.data);
 
-        function send(name, data, includeSelf=false) {
-            worker.port.postMessage({name, data});
+        function send(topic, data, includeSelf=false) {
+            worker.port.postMessage({topic, data});
             if (includeSelf) {
-                broadcast(name, data);
+                broadcast(topic, data);
             }
         }
 
@@ -102,13 +102,13 @@
         const prefix = '__hermes:';
         const queue = {};
 
-        function send(name, data, includeSelf=false) {
-            const key = prefix + name;
+        function send(topic, data, includeSelf=false) {
+            const key = prefix + topic;
             if (storage.getItem(key) === null) {
                 storage.setItem(key, JSON.stringify(data));
                 storage.removeItem(key);
                 if (includeSelf) {
-                    broadcast(name, data);
+                    broadcast(topic, data);
                 }
             } else {
                 /*
@@ -128,19 +128,19 @@
 
         window.addEventListener('storage', e => {
             if (e.key.indexOf(prefix) === 0 && e.oldValue === null) {
-                const name = e.key.replace(prefix, '');
+                const topic = e.key.replace(prefix, '');
                 const data = JSON.parse(e.newValue);
-                broadcast(name, data);
+                broadcast(topic, data);
             }
         });
 
         window.addEventListener('storage', e => {
             if (e.key.indexOf(prefix) === 0 && e.newValue === null) {
-                const name = e.key.replace(prefix, '');
-                if (name in queue) {
-                    send(name, queue[name].shift());
-                    if (queue[name].length === 0) {
-                        delete queue[name];
+                const topic = e.key.replace(prefix, '');
+                if (topic in queue) {
+                    send(topic, queue[topic].shift());
+                    if (queue[topic].length === 0) {
+                        delete queue[topic];
                     }
                 }
             }
