@@ -20,5 +20,9 @@
     "presets": [
       "es2015"
     ]
+  },
+  "devDependencies": {
+    "eslint": "5.8.0",
+    "eslint-config-arnellebalane": "1.3.0"
   }
 }
