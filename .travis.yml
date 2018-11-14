@@ -7,6 +7,8 @@ node_js:
 
 cache: npm
 
+install: npm ci
+
 before_script:
   - npm run lint
 
