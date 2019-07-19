@@ -24,7 +24,9 @@
   },
   "devDependencies": {
     "eslint": "5.8.0",
-    "eslint-config-arnellebalane": "1.4.0"
+    "eslint-config-arnellebalane": "1.4.0",
+    "husky": "3.0.1",
+    "lint-staged": "9.2.0"
   },
   "eslintConfig": {
     "extends": [
@@ -39,5 +41,13 @@
       "worker": true,
       "amd": true
     }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.js": "eslint"
   }
 }
