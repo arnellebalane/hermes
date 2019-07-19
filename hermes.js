@@ -127,6 +127,7 @@
         }
 
         window.addEventListener('storage', e => {
+            if (!e.key) return;
             if (e.key.indexOf(prefix) === 0 && e.oldValue === null) {
                 const topic = e.key.replace(prefix, '');
                 const data = JSON.parse(e.newValue);
@@ -135,6 +136,7 @@
         });
 
         window.addEventListener('storage', e => {
+            if (!e.key) return;
             if (e.key.indexOf(prefix) === 0 && e.newValue === null) {
                 const topic = e.key.replace(prefix, '');
                 if (topic in queue) {
