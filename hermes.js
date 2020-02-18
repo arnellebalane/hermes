@@ -104,7 +104,7 @@
 
         function send(topic, data, includeSelf=false) {
             const key = prefix + topic;
-            if (storage.getItem(key) === null) {
+            if (storage.getItem(key) === null || storage.getItem(key) === '') {
                 storage.setItem(key, JSON.stringify(data));
                 storage.removeItem(key);
                 if (includeSelf) {
@@ -128,7 +128,7 @@
 
         window.addEventListener('storage', e => {
             if (!e.key) { return; }
-            if (e.key.indexOf(prefix) === 0 && e.oldValue === null) {
+            if (e.key.indexOf(prefix) === 0 && (e.oldValue === null || e.oldValue === '')) {
                 const topic = e.key.replace(prefix, '');
                 const data = JSON.parse(e.newValue);
                 broadcast(topic, data);
@@ -137,7 +137,7 @@
 
         window.addEventListener('storage', e => {
             if (!e.key) { return; }
-            if (e.key.indexOf(prefix) === 0 && e.newValue === null) {
+            if (e.key.indexOf(prefix) === 0 && (e.newValue === null || e.newValue === '')) {
                 const topic = e.key.replace(prefix, '');
                 if (topic in queue) {
                     send(topic, queue[topic].shift());
