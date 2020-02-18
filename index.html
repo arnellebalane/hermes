@@ -36,8 +36,8 @@
             const ul = document.querySelector('ul');
             const ball = document.querySelector('.ball');
 
-            othersBtn.onclick = () => hermes.send('event', new Date());
-            allBtn.onclick = () => hermes.send('event', new Date(), true);
+            othersBtn.onclick = function() { hermes.send('event', new Date()); };
+            allBtn.onclick = function() { hermes.send('event', new Date(), true); };
 
             hermes.on('event', function(data) {
                 const li = document.createElement('li');
@@ -46,15 +46,15 @@
             });
 
             hermes.on('moveball', function(data) {
-                ball.style.top = `calc(${data.y * 100}% - 50px)`;
-                ball.style.left = `calc(${data.x * 100}% - 50px)`;
+                ball.style.top = 'calc(' + (data.y * 100) + '% - 50px)';
+                ball.style.left = 'calc(' + (data.x * 100) + '% - 50px)';
             });
 
             let dragging = false;
 
-            ball.addEventListener('pointerdown', (e) => dragging = true);
-            document.addEventListener('pointerup', (e) => dragging = false);
-            document.addEventListener('pointermove', (e) => {
+            ball.addEventListener('pointerdown', function(e) { dragging = true});
+            document.addEventListener('pointerup', function(e) { dragging = false });
+            document.addEventListener('pointermove', function(e) {
                 if (dragging) {
                     const data = {
                         x: e.pageX / window.innerWidth,
