@@ -10,9 +10,10 @@
   "author": "Arnelle Balane <arnellebalane@gmail.com> (https://arnellebalane.com)",
   "license": "MIT",
   "dependencies": {
-    "babel-core": "^6.24.1",
+    "babel-core": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
-    "gulp": "^3.9.1",
+    "fsevents": "^2.1.3",
+    "gulp": "^4.0.2",
     "gulp-babel": "^6.1.2",
     "gulp-rename": "^1.2.2",
     "gulp-uglify": "^2.1.2"
@@ -23,15 +24,11 @@
     ]
   },
   "devDependencies": {
-    "eslint": "5.8.0",
-    "eslint-config-arnellebalane": "1.4.0",
+    "eslint": "^5.8.0",
     "husky": "3.0.1",
     "lint-staged": "9.2.0"
   },
   "eslintConfig": {
-    "extends": [
-      "arnellebalane"
-    ],
     "parserOptions": {
       "sourceType": "module",
       "ecmaVersion": 2015
