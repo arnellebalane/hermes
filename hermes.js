@@ -45,9 +45,12 @@
         const channel = new BroadcastChannel('hermes');
         channel.onmessage = e => broadcast(e.data.topic, e.data.data);
 
-        function send(topic, data, includeSelf=false) {
-            channel.postMessage({topic, data});
-            if (includeSelf) {
+        function send(topic, data, target = 'other') {
+            if (target === 'all' || target === 'other') {
+                channel.postMessage({topic, data});
+            }
+
+            if (target === 'all' || target === 'current') {
                 broadcast(topic, data);
             }
         }
@@ -78,9 +81,12 @@
         worker.port.start();
         worker.port.onmessage = e => broadcast(e.data.topic, e.data.data);
 
-        function send(topic, data, includeSelf=false) {
-            worker.port.postMessage({topic, data});
-            if (includeSelf) {
+        function send(topic, data, target = 'other') {
+            if (target === 'all' || target === 'other') {
+                worker.port.postMessage({topic, data});
+            }
+
+            if (target === 'all' || target === 'current') {
                 broadcast(topic, data);
             }
         }
@@ -102,12 +108,15 @@
         const prefix = '__hermes:';
         const queue = {};
 
-        function send(topic, data, includeSelf=false) {
+        function send(topic, data, target= 'other') {
             const key = prefix + topic;
             if (storage.getItem(key) === null || storage.getItem(key) === '') {
-                storage.setItem(key, JSON.stringify(data));
-                storage.removeItem(key);
-                if (includeSelf) {
+                if (target === 'all' || target === 'other') {
+                    storage.setItem(key, JSON.stringify(data));
+                    storage.removeItem(key);
+                }
+
+                if (target === 'all' || target === 'current') {
                     broadcast(topic, data);
                 }
             } else {
