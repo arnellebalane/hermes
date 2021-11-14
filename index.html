@@ -24,6 +24,7 @@
 
         <button id="others">Send data to other tabs</button>
         <button id="all">Send data to all tabs (including self)</button>
+        <button id="current">Send data to current (just self)</button>
 
         <p class="ball"></p>
 
@@ -33,11 +34,13 @@
         <script>
             const othersBtn = document.querySelector('#others');
             const allBtn = document.querySelector('#all');
+            const currentBtn = document.querySelector('#current');
             const ul = document.querySelector('ul');
             const ball = document.querySelector('.ball');
 
             othersBtn.onclick = function() { hermes.send('event', new Date()); };
-            allBtn.onclick = function() { hermes.send('event', new Date(), true); };
+            allBtn.onclick = function() { hermes.send('event', new Date(), "all"); };
+            currentBtn.onclick = function() { hermes.send('event', new Date(), "current"); };
 
             hermes.on('event', function(data) {
                 const li = document.createElement('li');
@@ -60,7 +63,7 @@
                         x: e.pageX / window.innerWidth,
                         y: e.pageY / window.innerHeight
                     };
-                    hermes.send('moveball', data, true);
+                    hermes.send('moveball', data, "all");
                 }
             });
         </script>
