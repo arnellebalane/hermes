@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "client-side messaging channel for sending data from one browser tab to another",
   "main": "hermes.js",
+  "types": "hermes.d.ts",
   "scripts": {
     "build": "gulp",
     "lint": "eslint *.js"
